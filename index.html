@@ -277,14 +277,15 @@ html,body{overflow-x:hidden}
 </script>
 <script>(function(){
 const vs=[...document.querySelectorAll('video[data-src]')];
-// carga una sola vez al acercarse (sin descargar nunca: así no parpadea)
-const cerca=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;
- if(e.isIntersecting&&!v.getAttribute('src')){v.preload='auto';v.src=v.dataset.src;cerca.unobserve(v);}
-}),{rootMargin:'120% 0px'});
-// reproduce solo lo que está en pantalla; lo demás queda en pausa con su cuadro
-const vista=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;
- if(e.isIntersecting){v.play().catch(()=>{});}else{v.pause();}
-}),{threshold:.35});
-vs.forEach(v=>{v.loop=true;v.muted=true;v.playsInline=true;cerca.observe(v);vista.observe(v);});
+vs.forEach(v=>{v.muted=true;v.defaultMuted=true;v.loop=true;v.playsInline=true;});
+function revisar(){const H=innerHeight;
+ vs.forEach(v=>{const r=v.getBoundingClientRect();
+  const cerca=r.bottom>-H*1.2&&r.top<H*2.2, visto=r.bottom>H*.15&&r.top<H*.85;
+  if(cerca&&!v.getAttribute('src')){v.src=v.dataset.src;v.load();}
+  if(visto&&v.getAttribute('src')){if(v.paused)v.play().catch(()=>{});}else if(!v.paused){v.pause();}
+ });}
+let t=0;function pedir(){if(!t){t=requestAnimationFrame(()=>{t=0;revisar();});}}
+addEventListener('scroll',pedir,{passive:true});addEventListener('resize',pedir);addEventListener('load',revisar);
+document.addEventListener('touchend',pedir,{passive:true});setTimeout(revisar,300);setInterval(revisar,1500);
 })();</script></body>
 </html>
