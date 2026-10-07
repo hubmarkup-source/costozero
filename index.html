@@ -240,9 +240,9 @@ html,body{overflow-x:hidden}
 <section class="s" style="background:#E6DCC2">
   <div style="position:absolute;inset:0;display:flex;gap:30px;align-items:center;justify-content:center">
     <video preload="none" class="pz" data-src="costo-zero-historia-a-dc16ed.mp4" muted loop playsinline style="height:500px"></video>
-    <video preload="none" class="pz" data-src="posteo-a-animada-74a16d.mp4" muted loop playsinline style="height:500px"></video>
-    <video preload="none" class="pz" data-src="a4-super-oferta-animada-0a1802.mp4" poster="a4-4aae60.webp" muted loop playsinline style="height:500px"></video>
-    <video preload="none" class="pz" data-src="carrusel-cierre-animada-29706c.mp4" muted loop playsinline style="height:500px"></video></div>
+    <video preload="none" class="pz" data-src="costo-zero-posteo-a-489c3f.mp4" muted loop playsinline style="height:500px"></video>
+    <video preload="none" class="pz" data-src="costo-zero-super-oferta-a4-db4e32.mp4" poster="a4-4aae60.webp" muted loop playsinline style="height:500px"></video>
+    <video preload="none" class="pz" data-src="costo-zero-carrusel-cierre-0e0ee6.mp4" muted loop playsinline style="height:500px"></video></div>
   <img src="markup-906b5a.svg" alt="Markup" style="position:absolute;right:120px;bottom:60px;width:60px;filter:invert(1) brightness(.3)"></section><script>
 // web: cada página ocupa el ancho de la ventana, una debajo de la otra, con navegación por teclado y barra de progreso
 (function () {
@@ -277,9 +277,14 @@ html,body{overflow-x:hidden}
 </script>
 <script>(function(){
 const vs=[...document.querySelectorAll('video[data-src]')];
-const io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;
- if(e.isIntersecting){if(!v.getAttribute('src')){v.src=v.dataset.src;}v.play().catch(()=>{});}
- else if(v.getAttribute('src')){v.pause();v.removeAttribute('src');v.load();}
-}),{rootMargin:'60% 0px'});
-vs.forEach(v=>io.observe(v));})();</script></body>
+// carga una sola vez al acercarse (sin descargar nunca: así no parpadea)
+const cerca=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;
+ if(e.isIntersecting&&!v.getAttribute('src')){v.preload='auto';v.src=v.dataset.src;cerca.unobserve(v);}
+}),{rootMargin:'120% 0px'});
+// reproduce solo lo que está en pantalla; lo demás queda en pausa con su cuadro
+const vista=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;
+ if(e.isIntersecting){v.play().catch(()=>{});}else{v.pause();}
+}),{threshold:.35});
+vs.forEach(v=>{v.loop=true;v.muted=true;v.playsInline=true;cerca.observe(v);vista.observe(v);});
+})();</script></body>
 </html>
