@@ -288,11 +288,17 @@ const vs=[...document.querySelectorAll('video[data-src]')];
 vs.forEach(v=>{v.muted=true;v.defaultMuted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');v.setAttribute('muted','');});
 const cargar=v=>{if(!v.getAttribute('src')){v.src=v.dataset.src;v.load();}};
 const play=v=>{const p=v.play();if(p)p.catch(()=>{});};
-if('IntersectionObserver' in window){
- const io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;if(e.isIntersecting){cargar(v);play(v);}else if(!v.paused)v.pause();}),{rootMargin:'150% 0px',threshold:0});
- vs.forEach(v=>io.observe(v));
-}else vs.forEach(v=>{cargar(v);v.autoplay=true;});
-const tocar=()=>vs.forEach(v=>{if(v.getAttribute('src')&&v.paused){const r=v.getBoundingClientRect();if(r.width)play(v);}});
-addEventListener('touchend',tocar,{passive:true});addEventListener('click',tocar);
+const zoom=()=>parseFloat(document.documentElement.style.zoom)||1;
+const yDoc=el=>{let y=0;for(let e=el;e;e=e.offsetParent)y+=e.offsetTop;return y;};
+// distancia a la pantalla medida de tres maneras (con zoom en iOS cada navegador informa distinto): vale la más cercana
+function cerca(v,k){const H=innerHeight||800,r=v.getBoundingClientRect(),z=zoom(),y=yDoc(v),h=v.offsetHeight;
+ const d=[r.top<H*k&&r.bottom>-H*(k-1), y*z<scrollY+H*k&&(y+h)*z>scrollY-H*(k-1), y<scrollY+H*k&&y+h>scrollY-H*(k-1)];
+ return d.some(Boolean);}
+function revisar(){vs.forEach(v=>{if(cerca(v,2.2))cargar(v);if(v.getAttribute('src')){if(cerca(v,1))play(v);else if(!v.paused)v.pause();}});}
+if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){cargar(e.target);play(e.target);}}),{rootMargin:'150% 0px'});vs.forEach(v=>io.observe(v));}
+let t=0;const pedir=()=>{if(!t)t=setTimeout(()=>{t=0;revisar();},120);};
+addEventListener('scroll',pedir,{passive:true});addEventListener('resize',pedir);addEventListener('load',revisar);
+addEventListener('touchend',()=>{revisar();vs.forEach(v=>{if(v.getAttribute('src')&&v.paused&&cerca(v,1))play(v);});},{passive:true});
+setTimeout(revisar,300);setInterval(revisar,1200);
 })();</script></body>
 </html>
